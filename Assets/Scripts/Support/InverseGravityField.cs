@@ -4,19 +4,20 @@ using UnityEngine;
 
 public class InverseGravityField : MonoBehaviour
 {
-    private Vector3 originalGravity;
+    public MovementController targetBody = null;
     private void Awake()
     {
-        originalGravity = Physics.gravity;
+        if (targetBody == null)
+            targetBody = GameObject.FindGameObjectWithTag("Player")?.GetComponent<MovementController>();
     }
 
-    public void InverseGravity()
+    public void ApplyGravity()
     {
-        Physics.gravity = -1 * Physics.gravity;
+        targetBody.ApplyArtificialGravity = true;
     }
 
     public void RestoreGravity()
     {
-        Physics.gravity = originalGravity;
+        targetBody.ApplyArtificialGravity = false;
     }
 }

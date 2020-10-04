@@ -41,6 +41,8 @@ public class MovementController : MonoBehaviour
 
     public AudioSource jumpAudio;
 
+    public bool ApplyArtificialGravity = false;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -63,20 +65,22 @@ public class MovementController : MonoBehaviour
         movementDistance += MoveRight();
         MoveHorizontal(movementDistance);
         Jump();
+        ArtificialGravity();
     }
 
     private void Jump()
     {
         if (inputManager.GetJumpActive() && groundChecker.IsGrounded)
         {
-            rigidBody.velocity = -1 * Physics.gravity * jumpForce;
+            float orientation = ApplyArtificialGravity ? 1f : -1f;
+            rigidBody.velocity = orientation * Physics.gravity * jumpForce;
             jumpTimer = 0;
             if (!jumpAudio.isPlaying)
                 jumpAudio.Play();
         }
 
         // short jump without jump button
-        if (!inputManager.GetJumpActive() && Vector3.Dot(rigidBody.velocity, Physics.gravity) < 0)
+        if (!inputManager.GetJumpActive() && Vector3.Dot(rigidBody.velocity, Physics.gravity) < 0 && !ApplyArtificialGravity)
         {
             float supportForce = jumpSupportForce.Evaluate(jumpTimer) * jumpSupportForceMultiplier;
             rigidBody.velocity += Physics.gravity * supportForce * Time.deltaTime; 
@@ -113,5 +117,13 @@ public class MovementController : MonoBehaviour
     private void MoveHorizontal(float distance)
     {
         rigidBody.MovePosition(transform.position + new Vector3(distance, 0, 0));
+    }
+
+    private void ArtificialGravity()
+    {
+        if (ApplyArtificialGravity)
+        {
+            rigidBody.velocity +=  -2f * Physics.gravity * fallingForceMultiplier * Time.deltaTime;
+        }
     }
 }

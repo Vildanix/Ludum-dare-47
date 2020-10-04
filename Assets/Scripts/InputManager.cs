@@ -5,6 +5,7 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     private bool isHorizontalSwitched = false;
+    private bool isJumpingDisabled = false;
     private float axisTreshold = 0.5f;
 
     [SerializeField]
@@ -15,15 +16,25 @@ public class InputManager : MonoBehaviour
         processInputs = status;
     }
 
+    public void SetHorizontalInversion(bool invertStatus)
+    {
+        isHorizontalSwitched = invertStatus;
+    }
+
+    public void SetJumpAllowance(bool jumpStatus)
+    {
+        isJumpingDisabled = !jumpStatus;
+    }
+
     public bool GetJumpStart()
     {
-        if (!processInputs) return false;
+        if (!processInputs || isJumpingDisabled) return false;
         return Input.GetKeyDown(KeyCode.Space);
     }
 
     public bool GetJumpActive()
     {
-        if (!processInputs) return false;
+        if (!processInputs || isJumpingDisabled) return false;
         return Input.GetKey(KeyCode.Space);
     }
 

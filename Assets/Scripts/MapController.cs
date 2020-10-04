@@ -13,6 +13,7 @@ public class MapController : MonoBehaviour
     public UnityEvent OnGameReset;
     public UnityEvent<int> OnLevelActivate;
     public UnityEvent<int> OnLevelFinished;
+    public UnityEvent OnGameFinished;
 
     [SerializeField]
     private bool debugMapChage = false;
@@ -24,7 +25,10 @@ public class MapController : MonoBehaviour
     private bool debugGameRestart = false;
 
     [SerializeField]
-    private bool debugGamelevelFinished = false;
+    private bool debugGameLevelFinished = false;
+
+    [SerializeField]
+    private bool debugGameFinished = false;
 
     public void TriggerMapChange()
     {
@@ -60,6 +64,11 @@ public class MapController : MonoBehaviour
         TriggerMapChange();
     }
 
+    public void TriggerGameFinished()
+    {
+        OnGameFinished?.Invoke();
+    }
+
     // debugging code - delete before publishing
     private void Update()
     {
@@ -81,10 +90,16 @@ public class MapController : MonoBehaviour
             TriggerGameReset();
         }
 
-        if (debugGamelevelFinished)
+        if (debugGameLevelFinished)
         {
-            debugGamelevelFinished = false;
+            debugGameLevelFinished = false;
             TriggerLevelFinished();
+        }
+
+        if (debugGameFinished)
+        {
+            debugGameFinished = false;
+            TriggerGameFinished();
         }
     }
 

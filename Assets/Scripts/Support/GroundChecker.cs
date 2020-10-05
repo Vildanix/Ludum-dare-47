@@ -11,7 +11,8 @@ public class GroundChecker : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        isGrounded = true;    
+        if (!other.CompareTag("Gravity Field"))
+            isGrounded = true;    
     }
 
     private void OnTriggerExit(Collider other)

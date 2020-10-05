@@ -37,7 +37,16 @@ public class MovementController : MonoBehaviour
     private Rigidbody rigidBody;
 
     [SerializeField]
-    private GroundChecker groundChecker;
+    private CollisionChecker groundChecker = null;
+
+    [SerializeField]
+    private CollisionChecker gravityGroundChecker = null;
+
+    [SerializeField]
+    private CollisionChecker leftMovementChecker = null;
+
+    [SerializeField]
+    private CollisionChecker rightMovementChecker = null;
 
     public AudioSource jumpAudio;
 
@@ -51,36 +60,38 @@ public class MovementController : MonoBehaviour
 
         if (inputManager == null)
             inputManager = FindObjectOfType<InputManager>();
-
-        if (groundChecker == null)
-        {
-            groundChecker = GetComponentInChildren<GroundChecker>();
-        }
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        // horizontal movement
         float movementDistance = MoveLeft();
         movementDistance += MoveRight();
         MoveHorizontal(movementDistance);
-        Jump();
+
+        // jumping
+        if (ApplyArtificialGravity)
+            JumpInverted();
+        else 
+            Jump();
+
+        // inverted gravity countering force
         ArtificialGravity();
     }
 
     private void Jump()
     {
-        if (inputManager.GetJumpActive() && groundChecker.IsGrounded)
+        if (inputManager.GetJumpActive() && groundChecker.IsCollided)
         {
-            float orientation = ApplyArtificialGravity ? 1f : -1f;
-            rigidBody.velocity = orientation * Physics.gravity * jumpForce;
+            rigidBody.velocity = -1 * Physics.gravity * jumpForce;
             jumpTimer = 0;
             if (!jumpAudio.isPlaying)
                 jumpAudio.Play();
         }
 
         // short jump without jump button
-        if (!inputManager.GetJumpActive() && Vector3.Dot(rigidBody.velocity, Physics.gravity) < 0 && !ApplyArtificialGravity)
+        if (!inputManager.GetJumpActive() && Vector3.Dot(rigidBody.velocity, Physics.gravity) < 0)
         {
             float supportForce = jumpSupportForce.Evaluate(jumpTimer) * jumpSupportForceMultiplier;
             rigidBody.velocity += Physics.gravity * supportForce * Time.deltaTime; 
@@ -94,9 +105,34 @@ public class MovementController : MonoBehaviour
         jumpTimer += Time.deltaTime;
     }
 
+    private void JumpInverted()
+    {
+        if (inputManager.GetJumpActive() && gravityGroundChecker.IsCollided)
+        {
+            rigidBody.velocity = 1 * Physics.gravity * jumpForce;
+            jumpTimer = 0;
+            if (!jumpAudio.isPlaying)
+                jumpAudio.Play();
+        }
+        
+        // short jump without jump button
+        if (!inputManager.GetJumpActive() && Vector3.Dot(rigidBody.velocity, Physics.gravity) > 0)
+        {
+            float supportForce = jumpSupportForce.Evaluate(jumpTimer) * jumpSupportForceMultiplier;
+            rigidBody.velocity -= Physics.gravity * supportForce * Time.deltaTime;
+        }
+        
+        if (Vector3.Dot(rigidBody.velocity, Physics.gravity) < 0)
+        {
+            rigidBody.velocity -= Physics.gravity * fallingForceMultiplier * Time.deltaTime;
+        }
+
+        jumpTimer += Time.deltaTime;
+    }
+
     private float MoveLeft()
     {
-        if (inputManager.GetMoveLeft())
+        if (inputManager.GetMoveLeft() && !leftMovementChecker.IsCollided)
         {
             return (-1 * horizontralSpeed * Time.deltaTime);
         }
@@ -106,7 +142,7 @@ public class MovementController : MonoBehaviour
 
     private float MoveRight()
     {
-        if (inputManager.GetMoveRight())
+        if (inputManager.GetMoveRight() && !rightMovementChecker.IsCollided)
         {
             return (horizontralSpeed * Time.deltaTime);
         }
@@ -123,7 +159,7 @@ public class MovementController : MonoBehaviour
     {
         if (ApplyArtificialGravity)
         {
-            rigidBody.velocity +=  -2f * Physics.gravity * fallingForceMultiplier * Time.deltaTime;
+            rigidBody.velocity +=  -1.9f * Physics.gravity * Time.deltaTime;
         }
     }
 }
